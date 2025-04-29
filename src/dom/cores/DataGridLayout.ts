@@ -2,58 +2,13 @@ import type { CellId, Id, RowData, RowId, HeaderId, HeaderGroupId, RowContainerI
 import { getIdType, DataGridMapState, DataGridState, DataGridStates } from '../../host';
 import { calculateScrollOffsets } from '..';
 import type { DataGridDomPlugin } from '../atomic/DataGridDomPlugin';
-
-export interface DataGridLayoutNodeBase {
-    readonly element: HTMLElement;
-    readonly pinned?: 'left' | 'right' | 'top' | 'bottom';
-    readonly size: {
-        readonly height: number;
-        readonly width: number;
-    },
-    readonly offset: {
-        readonly top?: number;
-        readonly left?: number;
-    },
-    readonly attributes: Record<string, any>;
-}
-
-export interface DataGridCellNode extends DataGridLayoutNodeBase {
-    readonly id: CellId;
-    readonly type: 'cell',
-    readonly rowId: RowId;
-    readonly headerId: HeaderId;
-    readonly active?: boolean;
-    readonly focused?: boolean;
-}
-
-export interface DataGridHeaderNode extends DataGridLayoutNodeBase {
-    readonly id: HeaderId;
-    readonly type: 'header',
-}
-
-export interface DataGridRowNode extends DataGridLayoutNodeBase {
-    readonly id: RowId;
-    readonly type: 'row',
-}
-
-export interface DataGridHeaderGroupNode extends DataGridLayoutNodeBase {
-    readonly id: HeaderGroupId;
-    readonly type: 'headerGroup',
-}
-
-export interface DataGridRowContainerNode extends DataGridLayoutNodeBase {
-    readonly id: RowContainerId;
-    readonly type: 'rowContainer';
-}
-
-export type DataGridLayoutNode = DataGridCellNode | DataGridHeaderGroupNode | DataGridHeaderNode | DataGridRowNode | DataGridRowContainerNode;
+import type { DataGridHeaderNode, DataGridLayoutNode, DataGridRowNode, DomModifier } from '../helpers/DomModifier';
 
 export class DataGridLayout<TRow extends RowData> {
-    constructor(private state: DataGridStates<TRow>) { }
+    private _domModifierMap = new Map<DataGridDomPlugin<TRow>, DomModifier[]>();
+    private _layoutNodesState = new DataGridMapState<Id, DataGridLayoutNode>(new Map(), { useDeepEqual: false });
 
-    private getNodesByType = <TType extends DataGridLayoutNode>(type: TType['type']) => {
-        return this.layoutNodesState.values().filter((node) => node.type === type).toArray() as TType[];
-    };
+    constructor(private state: DataGridStates<TRow>) { }
 
     public get scrollbarWidth() {
         if (!this.scrollAreaState.value) {
@@ -65,8 +20,14 @@ export class DataGridLayout<TRow extends RowData> {
 
     public containerState = new DataGridState<HTMLElement | null>(null);
     public scrollAreaState = new DataGridState<HTMLElement | null>(null);
-    public layoutNodesState = new DataGridMapState<Id, DataGridLayoutNode>(new Map(), { useDeepEqual: false });
-    public pluginAttributesMap = new Map<DataGridDomPlugin<TRow>, string[]>();
+
+    public get watchNodes() {
+        return this._layoutNodesState.watchItems;
+    }
+
+    public get watchNode() {
+        return this._layoutNodesState.watchItem;
+    }
 
     /**
      * Register the container to the layout
@@ -86,7 +47,7 @@ export class DataGridLayout<TRow extends RowData> {
 
     /**
      * Remove the container from the layout
-     * @param container 
+     * @param container
      */
     public removeContainer = (container: HTMLElement) => {
         if (!this.containerState.value) {
@@ -163,7 +124,7 @@ export class DataGridLayout<TRow extends RowData> {
                 throw new Error(`Cell not found for cell id: ${cellId}`);
             }
 
-            this.layoutNodesState.addItem(cellId, {
+            this._layoutNodesState.addItem(cellId, {
                 ...nodeBase,
                 id: id as CellId,
                 type: 'cell',
@@ -175,7 +136,7 @@ export class DataGridLayout<TRow extends RowData> {
 
         if (type === 'header') {
             const headerId = id as HeaderId;
-            this.layoutNodesState.addItem(headerId, {
+            this._layoutNodesState.addItem(headerId, {
                 ...nodeBase,
                 id: id as HeaderId,
                 type
@@ -185,7 +146,7 @@ export class DataGridLayout<TRow extends RowData> {
 
         if (type === 'row') {
             const rowId = id as RowId;
-            this.layoutNodesState.addItem(rowId, {
+            this._layoutNodesState.addItem(rowId, {
                 ...nodeBase,
                 id: id as RowId,
                 type,
@@ -195,7 +156,7 @@ export class DataGridLayout<TRow extends RowData> {
 
         if (type === 'headerGroup') {
             const headerGroupId = id as HeaderGroupId;
-            this.layoutNodesState.addItem(headerGroupId, {
+            this._layoutNodesState.addItem(headerGroupId, {
                 ...nodeBase,
                 id: headerGroupId,
                 type,
@@ -205,7 +166,7 @@ export class DataGridLayout<TRow extends RowData> {
 
         if (type === 'rowContainer') {
             const rowContainerId = id as RowContainerId;
-            this.layoutNodesState.addItem(rowContainerId, {
+            this._layoutNodesState.addItem(rowContainerId, {
                 ...nodeBase,
                 id: rowContainerId,
                 type,
@@ -221,20 +182,61 @@ export class DataGridLayout<TRow extends RowData> {
      * @param id 
      */
     public removeNode = (id: Id) => {
-        this.layoutNodesState.removeItem(id);
+        this._layoutNodesState.removeItem(id);
+    };
+
+    public getNodesByType = <TType extends DataGridLayoutNode>(type: TType['type']) => {
+        return this._layoutNodesState.values().filter((node) => node.type === type).toArray() as TType[];
     };
 
     public getNodeByElement = (element: HTMLElement) => {
-        const registeredNode = this.layoutNodesState.values().find((node) => node.element === element);
+        const registeredNode = this._layoutNodesState.values().find((node) => node.element === element);
         return registeredNode;
     };
 
     public getNode = (id: Id) => {
-        const node = this.layoutNodesState.get(id);
+        const node = this._layoutNodesState.get(id);
         if (!node) {
             return;
         }
         return node;
+    };
+
+    public updateNode = (plugin: DataGridDomPlugin<TRow>, id: Id, partialNode: DeepPartial<DataGridLayoutNode>) => {
+        const node = this._layoutNodesState.get(id);
+        if (!node) {
+            return;
+        }
+
+        const nextNode = {
+            ...node,
+            pinned: partialNode.pinned ?? node.pinned,
+            offset: {
+                ...node.offset,
+                ...partialNode.offset
+            },
+            size: {
+                ...node.size,
+                ...partialNode.size
+            },
+            attributes: {
+                ...node.attributes,
+                ...partialNode.attributes
+            }
+        };
+
+        this._layoutNodesState.setItem(id, nextNode);
+
+        const domModifiers = this._domModifierMap.get(plugin);
+        if (!domModifiers) {
+            return;
+        }
+
+        domModifiers
+            .filter(o => o.type === nextNode.type)
+            .forEach((domModifier) => {
+                domModifier.modify(nextNode);
+            });
     };
 
     public calculateCellScrollOffsets = (targetId: CellId) => {
@@ -272,50 +274,13 @@ export class DataGridLayout<TRow extends RowData> {
         return calculateScrollOffsets(scrollArea, targetNode.element, viewport);
     };
 
-    public registerAttributes = (plugin: DataGridDomPlugin<TRow>, attributes: string[]) => {
-        this.pluginAttributesMap.set(plugin, attributes);
-    };
-
-    public updateNode = (plugin: DataGridDomPlugin<TRow>, id: Id, partialNode: DeepPartial<DataGridLayoutNode>) => {
-        const node = this.layoutNodesState.get(id);
-        if (!node) {
+    public registerDomModifier = (plugin: DataGridDomPlugin<TRow>, domModifier: DomModifier) => {
+        const existingModifiers = this._domModifierMap.get(plugin);
+        if (existingModifiers) {
+            existingModifiers.push(domModifier);
             return;
         }
 
-        const attributes = partialNode.attributes;
-        const offset = partialNode.offset;
-        const size = partialNode.size;
-
-        let updatedAttributes: Record<string, any> = node.attributes;
-        if (attributes) {
-            const registerAttributes = this.pluginAttributesMap.get(plugin);
-
-            if (!registerAttributes) {
-                throw new Error('Attributes not registered');
-            }
-
-            updatedAttributes = registerAttributes.reduce((acc, key) => {
-                acc[key] = attributes[key] ?? node.attributes[key] ?? undefined;
-                return acc;
-            }, {} as Record<string, any>);
-        }
-
-        const updatedOffset = {
-            ...node.offset,
-            ...offset
-        };
-
-        const updatedSize = {
-            ...node.size,
-            ...size
-        };
-
-        this.layoutNodesState.replaceItem(id, {
-            ...node,
-            pinned: partialNode.pinned ?? node.pinned,
-            offset: updatedOffset,
-            size: updatedSize,
-            attributes: updatedAttributes
-        });
+        this._domModifierMap.set(plugin, [domModifier]);
     };
 }

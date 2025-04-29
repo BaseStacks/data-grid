@@ -24,7 +24,7 @@ export function DataGridHeaderGroup({
     }, [options.headerHeight, props.style]);
 
     useLayoutEffect(() => {
-        const unwatchHeaderGroupNode = layout.layoutNodesState.watchItem('headerGroup:1', ({ item }) => {
+        const unwatchHeaderGroupNode = layout.watchNode('headerGroup:1', ({ item }) => {
             if (!ref.current) {
                 return;
             };
@@ -53,7 +53,7 @@ export function DataGridHeaderGroup({
             unwatchScrollArea();
             removeScrollHandler?.();
         };
-    }, [layout.layoutNodesState, layout.scrollAreaState, ref]);
+    }, [layout, layout.scrollAreaState]);
 
     useEffect(() => {
         layout.registerNode('headerGroup:1', ref.current!);

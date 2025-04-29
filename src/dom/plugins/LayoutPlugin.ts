@@ -1,5 +1,6 @@
 import type { Id, RowData } from '../../host';
 import { DataGridDomPlugin } from '../atomic/DataGridDomPlugin';
+import type { DataGridCellNode } from '../helpers/DomModifier';
 
 export interface LayoutPluginOptions {
 }
@@ -8,9 +9,9 @@ export class LayoutPlugin<TRow extends RowData> extends DataGridDomPlugin<TRow, 
     private updateHeaderNodes = () => {
         const { columnMinWidth, columnMaxWidth } = this.dataGrid.options;
         const { headers } = this.dataGrid.state;
-        const { layoutNodesState, updateNode } = this.dataGrid.layout;
+        const { getNodesByType, updateNode } = this.dataGrid.layout;
 
-        const headerNodes = layoutNodesState.values().filter((node) => node.type === 'header').toArray();
+        const headerNodes = getNodesByType('header');
 
         const scrollAreaWidth = this.scrollArea!.clientWidth;
         const columnCount = headers.value.length;
@@ -34,14 +35,14 @@ export class LayoutPlugin<TRow extends RowData> extends DataGridDomPlugin<TRow, 
     };
 
     private updateHeaderGroupNodes = () => {
-        const { layoutNodesState, updateNode } = this.dataGrid.layout;
+        const { getNode, getNodesByType, updateNode } = this.dataGrid.layout;
 
-        const headerGroupNode = layoutNodesState.get('headerGroup:1');
+        const headerGroupNode = getNode('headerGroup:1');
         if (!headerGroupNode) {
             return;
         }
 
-        const headerNodes = layoutNodesState.values().filter((node) => node.type === 'header').toArray();
+        const headerNodes = getNodesByType('header');
         const width = headerNodes.reduce((acc, node) => acc + node.size.width!, 0);
 
         updateNode(this, 'headerGroup:1', {
@@ -52,15 +53,15 @@ export class LayoutPlugin<TRow extends RowData> extends DataGridDomPlugin<TRow, 
     };
 
     private updateRowNodes = () => {
-        const { layoutNodesState, updateNode } = this.dataGrid.layout;
+        const { getNodesByType, getNode, updateNode } = this.dataGrid.layout;
 
-        const headerGroupNode = layoutNodesState.get('headerGroup:1');
+        const headerGroupNode = getNode('headerGroup:1');
         if (!headerGroupNode) {
             return;
         }
 
         let rowsHeight = 0;
-        const rowNodes = layoutNodesState.values().filter((node) => node.type === 'row');
+        const rowNodes = getNodesByType('row');
         rowNodes.forEach((node) => {
             rowsHeight += node.size.height!;
             updateNode(this, node.id, {
@@ -70,7 +71,7 @@ export class LayoutPlugin<TRow extends RowData> extends DataGridDomPlugin<TRow, 
             });
         });
 
-        const rowContainerNode = layoutNodesState.get('rowContainer:1');
+        const rowContainerNode = getNode('rowContainer:1');
         if (rowContainerNode) {
             updateNode(this, rowContainerNode.id, {
                 size: {
@@ -82,16 +83,16 @@ export class LayoutPlugin<TRow extends RowData> extends DataGridDomPlugin<TRow, 
     };
 
     private updateCellNodes = () => {
-        const { layoutNodesState, updateNode } = this.dataGrid.layout;
+        const { getNode, getNodesByType, updateNode } = this.dataGrid.layout;
 
-        const cellNodes = layoutNodesState.values().filter((node) => node.type === 'cell');
-        
+        const cellNodes = getNodesByType<DataGridCellNode>('cell');
+
         cellNodes.forEach((cellNode) => {
-            const headerNode = layoutNodesState.get(cellNode.headerId);
+            const headerNode = getNode(cellNode.headerId);
             if (!headerNode) {
                 return;
             }
-            
+
             updateNode(this, cellNode.id, {
                 size: {
                     width: headerNode.size.width

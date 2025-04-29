@@ -23,7 +23,7 @@ function DataGridCellImpl<TElement extends HTMLElement = HTMLElement>({ as, cell
     }), [props.style]);
 
     useLayoutEffect(() => {
-        const unwatchCell = layout.layoutNodesState.watchItem(cell.id, ({ operation, item }) => {
+        const unwatchCell = layout.watchNode(cell.id, ({ operation, item }) => {
             if (!ref.current || operation === 'remove') {
                 return;
             };
@@ -91,7 +91,7 @@ function DataGridCellImpl<TElement extends HTMLElement = HTMLElement>({ as, cell
             unwatchActiveCell();
             unwatchSelectedRanges();
         };
-    }, [cell.id, layout.layoutNodesState, state.activeCell, state.selectedRanges]);
+    }, [cell.id, layout, state.activeCell, state.selectedRanges]);
 
     useEffect(() => {
         layout.registerNode(cell.id, ref.current!);

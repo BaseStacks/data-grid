@@ -23,7 +23,7 @@ function DataGridHeaderImpl<TElement extends HTMLElement = HTMLElement>({ as, he
     }, [props.style]);
 
     useLayoutEffect(() => {
-        const unwatchLayout = layout.layoutNodesState.watchItem(header.id, ({ operation, item }) => {
+        const unwatchLayout = layout.watchNode(header.id, ({ operation, item }) => {
             if (!ref.current || operation === 'remove') {
                 return;
             };
@@ -46,7 +46,7 @@ function DataGridHeaderImpl<TElement extends HTMLElement = HTMLElement>({ as, he
         return () => {
             unwatchLayout();
         };
-    }, [header.id, layout.scrollbarWidth, layout.layoutNodesState]);
+    }, [header.id, layout.scrollbarWidth, layout]);
 
     useEffect(() => {
         layout.registerNode(header.id, ref.current!);

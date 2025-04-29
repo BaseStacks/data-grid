@@ -18,7 +18,7 @@ function DataGridRowContainerImpl({ as = 'div', ...props }: React.PropsWithChild
     }, [props.style]);
 
     useLayoutEffect(() => {
-        const unwatchRowLayouts = layout.layoutNodesState.watchItem('rowContainer:1', ({ item }) => {
+        const unwatchRowLayouts = layout.watchNode('rowContainer:1', ({ item }) => {
             if (!ref.current || !item) {
                 return;
             };
@@ -30,7 +30,7 @@ function DataGridRowContainerImpl({ as = 'div', ...props }: React.PropsWithChild
         return () => {
             unwatchRowLayouts();
         };
-    }, [layout.layoutNodesState]);
+    }, [layout]);
 
     useEffect(() => {
         layout.registerNode('rowContainer:1', ref.current!);

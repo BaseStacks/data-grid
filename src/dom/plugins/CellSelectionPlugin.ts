@@ -172,7 +172,7 @@ export class CellSelectionPlugin<TRow extends RowData> extends DataGridDomPlugin
         window.addEventListener('mousedown', this.handleContainerMouseDown);
         window.addEventListener('mouseup', this.handleContainerMouseUp);
 
-        const watchElements = this.dataGrid.layout.layoutNodesState.watchItems(({ id, item, operation }) => {
+        const watchElements = this.dataGrid.layout.watchNodes(({ id, item, operation }) => {
             const isCell = idTypeEquals(id, 'cell');
             if (!isCell) {
                 return;

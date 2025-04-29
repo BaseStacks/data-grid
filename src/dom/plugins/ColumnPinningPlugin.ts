@@ -1,6 +1,6 @@
 import type { ColumnKey, ColumnHeader, RowData } from '../../host';
 import { DataGridDomPlugin } from '../atomic/DataGridDomPlugin';
-import type { DataGridHeaderNode } from '../cores/DataGridLayout';
+import type { DataGridCellNode, DataGridHeaderNode } from '../cores/DataGridLayout';
 
 export interface ColumnPinningPluginOptions {
     readonly pinnedLeftColumns?: ColumnKey[];
@@ -17,7 +17,7 @@ export class ColumnPinningPlugin<TRow extends RowData> extends DataGridDomPlugin
 
     private setupHeaderNodes = () => {
         const { headers } = this.dataGrid.state;
-        const { layoutNodesState, updateNode } = this.dataGrid.layout;
+        const { getNode, updateNode } = this.dataGrid.layout;
 
         // Set default column width based on scrollArea width
         const scrollAreaWidth = this.scrollArea!.clientWidth;
@@ -26,7 +26,7 @@ export class ColumnPinningPlugin<TRow extends RowData> extends DataGridDomPlugin
         const columnWidth = Math.max(this.dataGrid.options.columnMinWidth, Math.min(defaultColumnWidth, this.dataGrid.options.columnMaxWidth));
 
         this._leftHeaders.forEach((header, index, leftHeaders) => {
-            const headerNode = layoutNodesState.get(header.id) as DataGridHeaderNode;
+            const headerNode = getNode(header.id) as DataGridHeaderNode;
 
             updateNode(this, headerNode.id, {
                 pinned: 'left',
@@ -39,7 +39,7 @@ export class ColumnPinningPlugin<TRow extends RowData> extends DataGridDomPlugin
         });
 
         this._bodyHeaders.forEach((header, index) => {
-            const headerNode = layoutNodesState.get(header.id) as DataGridHeaderNode;
+            const headerNode = getNode(header.id) as DataGridHeaderNode;
 
             updateNode(this, headerNode.id, {
                 offset: {
@@ -49,7 +49,7 @@ export class ColumnPinningPlugin<TRow extends RowData> extends DataGridDomPlugin
         });
 
         this._rightHeaders.forEach((header, index, rightHeaders) => {
-            const headerNode = layoutNodesState.get(header.id) as DataGridHeaderNode;
+            const headerNode = getNode(header.id) as DataGridHeaderNode;
 
             updateNode(this, headerNode.id, {
                 pinned: 'right',
@@ -63,14 +63,14 @@ export class ColumnPinningPlugin<TRow extends RowData> extends DataGridDomPlugin
     };
 
     private updateHeaderNodes = () => {
-        const { layoutNodesState, updateNode } = this.dataGrid.layout;
+        const { getNode, updateNode } = this.dataGrid.layout;
 
         const baseLeft = this.scrollArea!.scrollLeft;
 
         let pinnedLeftOffset = baseLeft;
 
         this._leftHeaders.forEach((header) => {
-            const headerNode = layoutNodesState.get(header.id);
+            const headerNode = getNode(header.id);
             if (!headerNode) {
                 return;
             }
@@ -93,7 +93,7 @@ export class ColumnPinningPlugin<TRow extends RowData> extends DataGridDomPlugin
         const viewportWidth = this.scrollArea!.clientWidth;
         let pinnedRightOffset = baseLeft + viewportWidth;
         this._rightHeadersDesc.forEach((header) => {
-            const headerNode = layoutNodesState.get(header.id);
+            const headerNode = getNode(header.id);
             if (!headerNode) {
                 return;
             }
@@ -115,12 +115,12 @@ export class ColumnPinningPlugin<TRow extends RowData> extends DataGridDomPlugin
     };
 
     private updateCellNodes = () => {
-        const { layoutNodesState, updateNode } = this.dataGrid.layout;
+        const { getNode, getNodesByType, updateNode } = this.dataGrid.layout;
 
-        const cellNodes = layoutNodesState.values().filter((node) => node.type === 'cell');
+        const cellNodes = getNodesByType<DataGridCellNode>('cell');
 
         cellNodes.forEach((cellNode) => {
-            const headerNode = layoutNodesState.get(cellNode.headerId);
+            const headerNode = getNode(cellNode.headerId);
             if (!headerNode) {
                 return;
             }
@@ -146,7 +146,7 @@ export class ColumnPinningPlugin<TRow extends RowData> extends DataGridDomPlugin
     };
 
     public handleActivate = () => {
-        this.dataGrid.layout.registerAttributes(this, ['data-pinned', 'data-fist-left', 'data-last-left', 'data-first-right', 'data-last-right']);
+        this.dataGrid.layout.registerDomModifier(this, ['data-pinned', 'data-fist-left', 'data-last-left', 'data-first-right', 'data-last-right']);
 
         this.scrollArea!.addEventListener('scroll', this.handleContainerScroll);
         this.unsubscribes.push(() => {

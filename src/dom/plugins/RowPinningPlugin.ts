@@ -15,10 +15,10 @@ export class RowPinningPlugin<TRow extends RowData> extends DataGridDomPlugin<TR
     private _bottomRowsDescending: Row[] = [];
 
     private setupRows = () => {
-        const { layoutNodesState, updateNode } = this.dataGrid.layout;
+        const { getNode, updateNode } = this.dataGrid.layout;
 
         this._topRows?.forEach((row, index, topRows) => {
-            const node = layoutNodesState.get(row.id);
+            const node = getNode(row.id);
             if (!node) {
                 return;
             }
@@ -40,7 +40,7 @@ export class RowPinningPlugin<TRow extends RowData> extends DataGridDomPlugin<TR
         });
 
         this._bodyRows.forEach((row, index) => {
-            const node = layoutNodesState.get(row.id);
+            const node = getNode(row.id);
             if (!node) {
                 return;
             }
@@ -57,7 +57,7 @@ export class RowPinningPlugin<TRow extends RowData> extends DataGridDomPlugin<TR
         });
 
         this._bottomRows.forEach((row, index, bottomRows) => {
-            const node = layoutNodesState.get(row.id);
+            const node = getNode(row.id);
             if (!node) {
                 return;
             }
@@ -80,7 +80,7 @@ export class RowPinningPlugin<TRow extends RowData> extends DataGridDomPlugin<TR
     };
 
     private updateRows = () => {
-        const { layoutNodesState, updateNode } = this.dataGrid.layout;
+        const { getNode, updateNode } = this.dataGrid.layout;
 
         if (!this._topRows.length || !this._bottomRows.length) {
             return;
@@ -89,7 +89,7 @@ export class RowPinningPlugin<TRow extends RowData> extends DataGridDomPlugin<TR
         const baseTop = this.scrollArea!.scrollTop || 0;
         let calculatedTopOffset = baseTop;
         this._topRows.forEach((row) => {
-            const node = layoutNodesState.get(row.id);
+            const node = getNode(row.id);
             if (!node) {
                 return;
             }
@@ -112,7 +112,7 @@ export class RowPinningPlugin<TRow extends RowData> extends DataGridDomPlugin<TR
         const viewportHeight = this.scrollArea!.clientHeight;
         let calculatedBottomOffset = baseTop + viewportHeight;
         this._bottomRowsDescending.forEach((row) => {
-            const node = layoutNodesState.get(row.id);
+            const node = getNode(row.id);
             if (!node) {
                 return;
             }
@@ -144,7 +144,7 @@ export class RowPinningPlugin<TRow extends RowData> extends DataGridDomPlugin<TR
     };
 
     public handleActivate = () => {
-        this.dataGrid.layout.registerAttributes(this, ['data-pinned', 'data-first-top', 'data-last-top', 'data-first-bottom', 'data-last-bottom']);
+        this.dataGrid.layout.registerDomModifier(this, ['data-pinned', 'data-first-top', 'data-last-top', 'data-first-bottom', 'data-last-bottom']);
 
         this.scrollArea!.addEventListener('scroll', this.handleScroll);
         this.unsubscribes.push(() => {

@@ -26,7 +26,7 @@ function DataGridRowImpl({
     }, [props.style]);
 
     useLayoutEffect(() => {
-        const unwatchRowLayouts = layout.layoutNodesState.watchItem(row.id, ({ item }) => {
+        const unwatchRowLayouts = layout.watchNode(row.id, ({ item }) => {
             if (!ref.current || !item) {
                 return;
             }
@@ -47,7 +47,7 @@ function DataGridRowImpl({
         return () => {
             unwatchRowLayouts();
         };
-    }, [layout.layoutNodesState, row.id]);
+    }, [layout, row.id]);
 
     useEffect(() => {
         layout.registerNode(row.id, ref.current!);

@@ -41,7 +41,7 @@ export class DataGridMapState<TItemId, TItem> {
         };
     }
 
-    public watchItems(listener: (operation: DataGridMapStateOperation<TItemId, TItem>) => void): () => void {
+    public watchItems = (listener: (operation: DataGridMapStateOperation<TItemId, TItem>) => void) => {
         this._events.on('item_change', listener);
 
         this._value.forEach((item, id) => {
@@ -51,9 +51,9 @@ export class DataGridMapState<TItemId, TItem> {
         return () => {
             this._events.off('item_change', listener);
         };
-    }
+    };
 
-    public watchItem(itemId: TItemId, listener: (operation: DataGridMapStateOperation<TItemId, TItem>) => void): () => void {
+    public watchItem = (itemId: TItemId, listener: (operation: DataGridMapStateOperation<TItemId, TItem>) => void) => {
         const eventName = this._getItemEventName(itemId);
         this._events.on(eventName, listener);
 
@@ -64,9 +64,9 @@ export class DataGridMapState<TItemId, TItem> {
         return () => {
             this._events.off(eventName, listener);
         };
-    }
+    };
 
-    public set(newValue: Map<TItemId, TItem> | ((oldValue: Map<TItemId, TItem>) => Map<TItemId, TItem>), options: DataGridStateSetOptions = {}): void {
+    public set = (newValue: Map<TItemId, TItem> | ((oldValue: Map<TItemId, TItem>) => Map<TItemId, TItem>), options: DataGridStateSetOptions = {}) => {
         const { silent } = options;
 
         const _newValue = typeof newValue === 'function' ? (newValue as (oldValue: Map<TItemId, TItem>) => Map<TItemId, TItem>)(this.value) : newValue;
@@ -93,9 +93,9 @@ export class DataGridMapState<TItemId, TItem> {
                 this._events.emit('item_change', { operation: 'init', item, id: itemId });
             }
         }
-    }
+    };
 
-    public addItem(itemId: TItemId, item: TItem): void {
+    public addItem = (itemId: TItemId, item: TItem) => {
         const hasItem = this._value.has(itemId);
         if (hasItem) {
             throw new Error(`Item with id ${itemId} already exists`);
@@ -111,9 +111,9 @@ export class DataGridMapState<TItemId, TItem> {
         };
         this._events.emit(eventName, eventPayload);
         this._events.emit('item_change', eventPayload);
-    }
+    };
 
-    public removeItem(itemId: TItemId): void {
+    public removeItem = (itemId: TItemId) => {
         const removedItem = this._value.get(itemId);
         if (!removedItem) {
             throw new Error(`Item with id ${itemId} does not exist`);
@@ -128,9 +128,9 @@ export class DataGridMapState<TItemId, TItem> {
         };
         this._events.emit(eventName, eventPayload);
         this._events.emit('item_change', eventPayload);
-    }
+    };
 
-    public replaceItem(itemId: TItemId, item: TItem): void {
+    public setItem = (itemId: TItemId, item: TItem) => {
         const hasItem = this._value.has(itemId);
         if (!hasItem) {
             throw new Error(`Item with id ${itemId} does not exist`);
@@ -146,12 +146,12 @@ export class DataGridMapState<TItemId, TItem> {
         };
         this._events.emit(eventName, eventPayload);
         this._events.emit('item_change', eventPayload);
-    }
+    };
 
-    public clear(): void {
+    public clear = () => {
         this._value.clear();
         this._events.emit('clear', {});
-    }
+    };
 
     //#region Helpers
     public get size() {
