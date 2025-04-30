@@ -17,25 +17,10 @@ function DataGridCellImpl<TElement extends HTMLElement = HTMLElement>({ as, cell
 
     const style: React.CSSProperties = useMemo(() => ({
         ...props.style,
-        position: 'absolute',
-        top: '0',
         height: '100%',
     }), [props.style]);
 
     useLayoutEffect(() => {
-        const unwatchCell = layout.watchNode(cell.id, ({ operation, item }) => {
-            if (!ref.current || operation === 'remove') {
-                return;
-            };
-
-            const { size, offset } = item;
-
-            ref.current.style.width = `${size.width}px`;
-            ref.current.style.left = offset.left === undefined ? '' : `${offset.left}px`;
-
-            setAttributes(ref.current, item.attributes);
-        });
-
         const unwatchActiveCell = state.activeCell.watch((activeCell) => {
             if (!ref.current) {
                 return;
@@ -87,7 +72,6 @@ function DataGridCellImpl<TElement extends HTMLElement = HTMLElement>({ as, cell
         });
 
         return () => {
-            unwatchCell();
             unwatchActiveCell();
             unwatchSelectedRanges();
         };

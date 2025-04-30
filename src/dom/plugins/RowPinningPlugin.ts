@@ -144,7 +144,10 @@ export class RowPinningPlugin<TRow extends RowData> extends DataGridDomPlugin<TR
     };
 
     public handleActivate = () => {
-        this.dataGrid.layout.registerDomModifier(this, ['data-pinned', 'data-first-top', 'data-last-top', 'data-first-bottom', 'data-last-bottom']);
+        this.dataGrid.layout.registerDomModifier(this, {
+            type: 'row',
+            attributes: ['data-pinned', 'data-first-top', 'data-last-top', 'data-first-bottom', 'data-last-bottom']
+        });
 
         this.scrollArea!.addEventListener('scroll', this.handleScroll);
         this.unsubscribes.push(() => {

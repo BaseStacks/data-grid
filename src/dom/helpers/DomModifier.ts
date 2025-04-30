@@ -45,11 +45,14 @@ export interface DataGridRowContainerNode extends DataGridLayoutNodeBase {
 
 export type DataGridLayoutNode = DataGridCellNode | DataGridHeaderGroupNode | DataGridHeaderNode | DataGridRowNode | DataGridRowContainerNode;
 
+export interface DomModifierOptions {
+    readonly type: DataGridLayoutNode['type'];
+    readonly attributes: string[];
+}
+
 export class DomModifier {
-    constructor(
-        public type: DataGridLayoutNode['type'],
-        public attributes: string[],
-    ) { }
+    constructor(public options: DomModifierOptions) {
+    }
 
     public modify = (node: DataGridLayoutNode) => {
         const { top, left } = node.offset;
@@ -63,15 +66,15 @@ export class DomModifier {
             node.element.style.left = `${left}px`;
             node.element.style.position = 'absolute';
         }
-
-        if (node.element.style.width) {
+        
+        if (width !== undefined) {
             node.element.style.width = `${width}px`;
         }
-        if (node.element.style.height) {
+        if (height !== undefined) {
             node.element.style.height = `${height}px`;
         }
 
-        this.attributes.forEach((key) => {
+        this.options.attributes.forEach((key) => {
             if (node.attributes[key] !== undefined) {
                 node.element.setAttribute(key, node.attributes[key]);
             } else {
@@ -88,7 +91,7 @@ export class DomModifier {
         node.element.style.width = '';
         node.element.style.height = '';
 
-        this.attributes.forEach((key) => {
+        this.options.attributes.forEach((key) => {
             node.element.removeAttribute(key);
         });
     };

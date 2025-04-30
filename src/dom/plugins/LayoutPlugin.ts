@@ -102,6 +102,12 @@ export class LayoutPlugin<TRow extends RowData> extends DataGridDomPlugin<TRow, 
     };
 
     public handleActivate = () => {
+
+        this.dataGrid.layout.registerDomModifier(this,  {
+            type: 'rowContainer',
+            attributes: []
+        });
+
         const watchHeaders = this.dataGrid.state.headers.watch(() => {
             this.updateHeaderNodes();
             this.updateHeaderGroupNodes();

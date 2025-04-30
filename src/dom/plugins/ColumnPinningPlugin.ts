@@ -1,6 +1,6 @@
 import type { ColumnKey, ColumnHeader, RowData } from '../../host';
 import { DataGridDomPlugin } from '../atomic/DataGridDomPlugin';
-import type { DataGridCellNode, DataGridHeaderNode } from '../cores/DataGridLayout';
+import { DomModifier, type DataGridCellNode, type DataGridHeaderNode } from '../helpers/DomModifier';
 
 export interface ColumnPinningPluginOptions {
     readonly pinnedLeftColumns?: ColumnKey[];
@@ -146,7 +146,15 @@ export class ColumnPinningPlugin<TRow extends RowData> extends DataGridDomPlugin
     };
 
     public handleActivate = () => {
-        this.dataGrid.layout.registerDomModifier(this, ['data-pinned', 'data-fist-left', 'data-last-left', 'data-first-right', 'data-last-right']);
+        this.dataGrid.layout.registerDomModifier(this, {
+            type: 'header',
+            attributes: ['data-pinned', 'data-fist-left', 'data-last-left', 'data-first-right', 'data-last-right']
+        });
+
+        this.dataGrid.layout.registerDomModifier(this, {
+            type: 'cell',
+            attributes: []
+        });
 
         this.scrollArea!.addEventListener('scroll', this.handleContainerScroll);
         this.unsubscribes.push(() => {

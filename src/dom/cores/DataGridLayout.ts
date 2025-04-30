@@ -2,13 +2,15 @@ import type { CellId, Id, RowData, RowId, HeaderId, HeaderGroupId, RowContainerI
 import { getIdType, DataGridMapState, DataGridState, DataGridStates } from '../../host';
 import { calculateScrollOffsets } from '..';
 import type { DataGridDomPlugin } from '../atomic/DataGridDomPlugin';
-import type { DataGridHeaderNode, DataGridLayoutNode, DataGridRowNode, DomModifier } from '../helpers/DomModifier';
+import { DomModifier, type DataGridHeaderNode, type DataGridLayoutNode, type DataGridRowNode, type DomModifierOptions } from '../helpers/DomModifier';
 
 export class DataGridLayout<TRow extends RowData> {
     private _domModifierMap = new Map<DataGridDomPlugin<TRow>, DomModifier[]>();
     private _layoutNodesState = new DataGridMapState<Id, DataGridLayoutNode>(new Map(), { useDeepEqual: false });
 
-    constructor(private state: DataGridStates<TRow>) { }
+    constructor(private state: DataGridStates<TRow>) {
+
+    }
 
     public get scrollbarWidth() {
         if (!this.scrollAreaState.value) {
@@ -107,8 +109,8 @@ export class DataGridLayout<TRow extends RowData> {
                 width: element.clientWidth
             },
             offset: {
-                top: element.offsetTop,
-                left: element.offsetLeft,
+                top: undefined,
+                left: undefined,
             }
         };
 
@@ -233,7 +235,7 @@ export class DataGridLayout<TRow extends RowData> {
         }
 
         domModifiers
-            .filter(o => o.type === nextNode.type)
+            .filter(o => o.options.type === nextNode.type)
             .forEach((domModifier) => {
                 domModifier.modify(nextNode);
             });
@@ -274,8 +276,9 @@ export class DataGridLayout<TRow extends RowData> {
         return calculateScrollOffsets(scrollArea, targetNode.element, viewport);
     };
 
-    public registerDomModifier = (plugin: DataGridDomPlugin<TRow>, domModifier: DomModifier) => {
+    public registerDomModifier = (plugin: DataGridDomPlugin<TRow>, options: DomModifierOptions) => {
         const existingModifiers = this._domModifierMap.get(plugin);
+        const domModifier = new DomModifier(options);
         if (existingModifiers) {
             existingModifiers.push(domModifier);
             return;

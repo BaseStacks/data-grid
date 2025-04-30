@@ -22,32 +22,6 @@ function DataGridHeaderImpl<TElement extends HTMLElement = HTMLElement>({ as, he
         };
     }, [props.style]);
 
-    useLayoutEffect(() => {
-        const unwatchLayout = layout.watchNode(header.id, ({ operation, item }) => {
-            if (!ref.current || operation === 'remove') {
-                return;
-            };
-
-            const { size, offset, attributes } = item as DataGridHeaderNode;
-
-            let width = size.width!;
-
-            const lastRight = attributes['data-last-right'];
-            if (lastRight) {
-                width += layout.scrollbarWidth;
-            }
-
-            ref.current.style.width = `${width}px`;
-            ref.current.style.left = offset.left === undefined ? '' : `${offset.left}px`;
-
-            setAttributes(ref.current, attributes);
-        });
-
-        return () => {
-            unwatchLayout();
-        };
-    }, [header.id, layout.scrollbarWidth, layout]);
-
     useEffect(() => {
         layout.registerNode(header.id, ref.current!);
         return () => {

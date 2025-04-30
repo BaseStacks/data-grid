@@ -11,27 +11,6 @@ function DataGridRowContainerImpl({ as = 'div', ...props }: React.PropsWithChild
 
     const Component = (as || 'div') as React.ElementType;
 
-    const style: React.CSSProperties = useMemo(() => {
-        return {
-            ...props.style,
-        };
-    }, [props.style]);
-
-    useLayoutEffect(() => {
-        const unwatchRowLayouts = layout.watchNode('rowContainer:1', ({ item }) => {
-            if (!ref.current || !item) {
-                return;
-            };
-
-            ref.current.style.height = item.size.height + 'px';
-            ref.current.style.width = item.size.width + 'px';
-        });
-
-        return () => {
-            unwatchRowLayouts();
-        };
-    }, [layout]);
-
     useEffect(() => {
         layout.registerNode('rowContainer:1', ref.current!);
         return () => {
@@ -43,7 +22,6 @@ function DataGridRowContainerImpl({ as = 'div', ...props }: React.PropsWithChild
         <Component
             {...props}
             ref={ref}
-            style={style}
         />
     );
 };
