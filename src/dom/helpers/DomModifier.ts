@@ -47,7 +47,7 @@ export type DataGridLayoutNode = DataGridCellNode | DataGridHeaderGroupNode | Da
 
 export interface DomModifierOptions {
     readonly type: DataGridLayoutNode['type'];
-    readonly attributes: string[];
+    readonly attributes?: string[];
 }
 
 export class DomModifier {
@@ -74,7 +74,7 @@ export class DomModifier {
             node.element.style.height = `${height}px`;
         }
 
-        this.options.attributes.forEach((key) => {
+        this.options.attributes?.forEach((key) => {
             if (node.attributes[key] !== undefined) {
                 node.element.setAttribute(key, node.attributes[key]);
             } else {
@@ -83,16 +83,4 @@ export class DomModifier {
         });
     };
 
-    public unmodify = (node: DataGridLayoutNode) => {
-        node.element.style.top = '';
-        node.element.style.position = '';
-        node.element.style.left = '';
-        node.element.style.position = '';
-        node.element.style.width = '';
-        node.element.style.height = '';
-
-        this.options.attributes.forEach((key) => {
-            node.element.removeAttribute(key);
-        });
-    };
 }

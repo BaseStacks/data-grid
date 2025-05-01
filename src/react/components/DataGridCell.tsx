@@ -2,7 +2,6 @@ import { memo, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { type CellRender } from '../../host';
 import { useDataGridContext } from '../hooks/useDataGridContext';
 import React from 'react';
-import { setAttributes } from '../../dom';
 
 interface DataGridCellProps<TElement extends HTMLElement> extends React.HTMLAttributes<TElement> {
     readonly as?: string

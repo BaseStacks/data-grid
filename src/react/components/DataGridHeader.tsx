@@ -1,7 +1,6 @@
-import React, { memo, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
+import React, { memo, useEffect, useRef } from 'react';
 import { useDataGridContext } from '../hooks/useDataGridContext';
 import type { ColumnHeader } from '../../host';
-import { setAttributes, type DataGridHeaderNode } from '../../dom';
 
 interface DataGridHeaderProps<TElement extends HTMLElement> extends React.HTMLAttributes<TElement> {
     readonly as?: string
@@ -14,14 +13,6 @@ function DataGridHeaderImpl<TElement extends HTMLElement = HTMLElement>({ as, he
 
     const Component = as || 'div' as React.ElementType;
 
-    const style: React.CSSProperties = useMemo(() => {
-        return {
-            ...props.style,
-            position: 'absolute',
-            height: '100%',
-        };
-    }, [props.style]);
-
     useEffect(() => {
         layout.registerNode(header.id, ref.current!);
         return () => {
@@ -30,7 +21,7 @@ function DataGridHeaderImpl<TElement extends HTMLElement = HTMLElement>({ as, he
     }, [layout, header.id, ref]);
 
     return (
-        <Component {...props} ref={ref} style={style}>
+        <Component {...props} ref={ref}>
             {children ?? header.render()}
         </Component>
     );

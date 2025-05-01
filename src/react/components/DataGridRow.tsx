@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useRef } from 'react';
+import { memo, useEffect, useRef } from 'react';
 import { useDataGridContext } from '../hooks/useDataGridContext';
 import type { Row } from '../../host';
 

@@ -95,6 +95,7 @@ export class LayoutPlugin<TRow extends RowData> extends DataGridDomPlugin<TRow, 
 
             updateNode(this, cellNode.id, {
                 size: {
+                    height: this.dataGrid.options.rowHeight,
                     width: headerNode.size.width
                 }
             });
@@ -102,11 +103,7 @@ export class LayoutPlugin<TRow extends RowData> extends DataGridDomPlugin<TRow, 
     };
 
     public handleActivate = () => {
-
-        this.dataGrid.layout.registerDomModifier(this,  {
-            type: 'rowContainer',
-            attributes: []
-        });
+        this.dataGrid.layout.registerDomModifier(this, { type: 'rowContainer' });
 
         const watchHeaders = this.dataGrid.state.headers.watch(() => {
             this.updateHeaderNodes();

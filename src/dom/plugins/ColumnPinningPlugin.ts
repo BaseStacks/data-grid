@@ -1,6 +1,6 @@
 import type { ColumnKey, ColumnHeader, RowData } from '../../host';
 import { DataGridDomPlugin } from '../atomic/DataGridDomPlugin';
-import { DomModifier, type DataGridCellNode, type DataGridHeaderNode } from '../helpers/DomModifier';
+import { type DataGridCellNode, type DataGridHeaderNode } from '../helpers/DomModifier';
 
 export interface ColumnPinningPluginOptions {
     readonly pinnedLeftColumns?: ColumnKey[];
@@ -16,7 +16,7 @@ export class ColumnPinningPlugin<TRow extends RowData> extends DataGridDomPlugin
     private _rightHeadersDesc: ColumnHeader[] = [];
 
     private setupHeaderNodes = () => {
-        const { headers } = this.dataGrid.state;
+        const { headers, options } = this.dataGrid.state;
         const { getNode, updateNode } = this.dataGrid.layout;
 
         // Set default column width based on scrollArea width
@@ -30,6 +30,9 @@ export class ColumnPinningPlugin<TRow extends RowData> extends DataGridDomPlugin
 
             updateNode(this, headerNode.id, {
                 pinned: 'left',
+                size: {
+                    height: options.rowHeight,
+                },
                 attributes: {
                     'data-pinned': 'left',
                     'data-fist-left': (index === 0) || undefined,
